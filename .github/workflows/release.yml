@@ -19,6 +19,9 @@ jobs:
           - os: macos-latest
             label: macos-aarch64
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - uses: actions/checkout@v4
@@ -29,17 +32,28 @@ jobs:
           distribution: oracle
           java-version: '25'
 
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-0 libx11-6 libxtst6 libxxf86vm1 libgl1
+
       - name: Extract version from tag
-        shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+          # macOS jpackage 要求 app-version 首位不能为 0，补成 1.x.x 格式
+          MAJOR="${VERSION%%.*}"
+          if [ "$MAJOR" = "0" ]; then
+            echo "MAC_APP_VERSION=1.${VERSION#0.}" >> "$GITHUB_ENV"
+          else
+            echo "MAC_APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+          fi
 
       - name: Build
         run: mvn clean package -q
 
       - name: Prepare jpackage input
-        shell: bash
         run: |
           mkdir -p dist/jpackage-cli dist/jpackage-fx
           cp cli/target/alipan-webdav-cli-*.jar dist/jpackage-cli/
@@ -48,7 +62,6 @@ jobs:
           rm -f dist/jpackage-cli/original-* dist/jpackage-fx/original-*
 
       - name: Find jar filenames
-        shell: bash
         run: |
           CLI_JAR=$(basename dist/jpackage-cli/*.jar)
           FX_JAR=$(basename dist/jpackage-fx/*.jar)
@@ -56,8 +69,11 @@ jobs:
           echo "FX_JAR=$FX_JAR" >> "$GITHUB_ENV"
 
       - name: Package CLI (app-image)
-        shell: bash
         run: |
+          JPKG_VERSION="$APP_VERSION"
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            JPKG_VERSION="$MAC_APP_VERSION"
+          fi
           ARGS=(
             --name alipan-webdav
             --input dist/jpackage-cli
@@ -65,7 +81,7 @@ jobs:
             --main-class com.alipan.webdav.cli.Main
             --type app-image
             --dest dist
-            --app-version "$APP_VERSION"
+            --app-version "$JPKG_VERSION"
           )
           if [ "$RUNNER_OS" = "Windows" ]; then
             ARGS+=(--win-console)
@@ -73,8 +89,11 @@ jobs:
           jpackage "${ARGS[@]}"
 
       - name: Package GUI (app-image)
-        shell: bash
         run: |
+          JPKG_VERSION="$APP_VERSION"
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            JPKG_VERSION="$MAC_APP_VERSION"
+          fi
           jpackage \
             --name WebDAV \
             --input dist/jpackage-fx \
@@ -83,15 +102,17 @@ jobs:
             --type app-image \
             --dest dist \
             --java-options "--add-opens=java.base/java.lang=ALL-UNNAMED" \
-            --app-version "$APP_VERSION"
+            --app-version "$JPKG_VERSION"
 
       - name: Compress artifacts
-        shell: bash
         run: |
           cd dist
           if [ "$RUNNER_OS" = "Windows" ]; then
             7z a -tzip "alipan-webdav-cli-${APP_VERSION}-${{ matrix.label }}.zip" alipan-webdav/
             7z a -tzip "WebDAV-${APP_VERSION}-${{ matrix.label }}.zip" WebDAV/
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            tar -czf "alipan-webdav-cli-${APP_VERSION}-${{ matrix.label }}.tar.gz" alipan-webdav.app/
+            tar -czf "WebDAV-${APP_VERSION}-${{ matrix.label }}.tar.gz" WebDAV.app/
           else
             tar -czf "alipan-webdav-cli-${APP_VERSION}-${{ matrix.label }}.tar.gz" alipan-webdav/
             tar -czf "WebDAV-${APP_VERSION}-${{ matrix.label }}.tar.gz" WebDAV/
