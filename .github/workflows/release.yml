@@ -16,8 +16,6 @@ jobs:
             label: windows-x64
           - os: ubuntu-latest
             label: linux-x64
-          - os: macos-latest
-            label: macos-aarch64
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -42,13 +40,6 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
-          # macOS jpackage 要求 app-version 首位不能为 0，补成 1.x.x 格式
-          MAJOR="${VERSION%%.*}"
-          if [ "$MAJOR" = "0" ]; then
-            echo "MAC_APP_VERSION=1.${VERSION#0.}" >> "$GITHUB_ENV"
-          else
-            echo "MAC_APP_VERSION=$VERSION" >> "$GITHUB_ENV"
-          fi
 
       - name: Build
         run: mvn clean package -q
@@ -58,7 +49,6 @@ jobs:
           mkdir -p dist/jpackage-cli dist/jpackage-fx
           cp cli/target/alipan-webdav-cli-*.jar dist/jpackage-cli/
           cp fx/target/alipan-webdav-fx-*.jar dist/jpackage-fx/
-          # 去掉 original- 开头的 jar
           rm -f dist/jpackage-cli/original-* dist/jpackage-fx/original-*
 
       - name: Find jar filenames
@@ -70,10 +60,6 @@ jobs:
 
       - name: Package CLI (app-image)
         run: |
-          JPKG_VERSION="$APP_VERSION"
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            JPKG_VERSION="$MAC_APP_VERSION"
-          fi
           ARGS=(
             --name alipan-webdav
             --input dist/jpackage-cli
@@ -81,7 +67,7 @@ jobs:
             --main-class com.alipan.webdav.cli.Main
             --type app-image
             --dest dist
-            --app-version "$JPKG_VERSION"
+            --app-version "$APP_VERSION"
           )
           if [ "$RUNNER_OS" = "Windows" ]; then
             ARGS+=(--win-console)
@@ -90,10 +76,6 @@ jobs:
 
       - name: Package GUI (app-image)
         run: |
-          JPKG_VERSION="$APP_VERSION"
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            JPKG_VERSION="$MAC_APP_VERSION"
-          fi
           jpackage \
             --name WebDAV \
             --input dist/jpackage-fx \
@@ -102,7 +84,7 @@ jobs:
             --type app-image \
             --dest dist \
             --java-options "--add-opens=java.base/java.lang=ALL-UNNAMED" \
-            --app-version "$JPKG_VERSION"
+            --app-version "$APP_VERSION"
 
       - name: Compress artifacts
         run: |
@@ -110,9 +92,6 @@ jobs:
           if [ "$RUNNER_OS" = "Windows" ]; then
             7z a -tzip "alipan-webdav-cli-${APP_VERSION}-${{ matrix.label }}.zip" alipan-webdav/
             7z a -tzip "alipan-webdav-fx-${APP_VERSION}-${{ matrix.label }}.zip" WebDAV/
-          elif [ "$RUNNER_OS" = "macOS" ]; then
-            tar -czf "alipan-webdav-cli-${APP_VERSION}-${{ matrix.label }}.tar.gz" alipan-webdav.app/
-            tar -czf "alipan-webdav-fx-${APP_VERSION}-${{ matrix.label }}.tar.gz" WebDAV.app/
           else
             tar -czf "alipan-webdav-cli-${APP_VERSION}-${{ matrix.label }}.tar.gz" alipan-webdav/
             tar -czf "alipan-webdav-fx-${APP_VERSION}-${{ matrix.label }}.tar.gz" WebDAV/
@@ -124,3 +103,34 @@ jobs:
           files: |
             dist/alipan-webdav-cli-*.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
             dist/alipan-webdav-fx-*.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
+
+  # 跨平台 jar（macOS 及其他平台通过 jar 运行）
+  jar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: oracle
+          java-version: '25'
+
+      - name: Build
+        run: mvn clean package -q
+
+      - name: Prepare jars
+        run: |
+          mkdir -p dist
+          cp cli/target/alipan-webdav-cli-[0-9]*.jar dist/
+          cp fx/target/alipan-webdav-fx-[0-9]*.jar dist/
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.jar

@@ -11,13 +11,29 @@
 
 ## 下载
 
-从 [Releases](https://github.com/wyk0930/alipan-webdav/releases) 页面下载对应平台的压缩包，解压后直接运行，内嵌 JRE 无需安装 Java。
+从 [Releases](https://github.com/wyk0930/alipan-webdav/releases) 页面下载。
+
+**免安装版（内嵌 JRE，无需安装 Java）：**
 
 | 平台 | GUI | CLI |
 |------|-----|-----|
 | Windows x64 | `alipan-webdav-fx-*-windows-x64.zip` | `alipan-webdav-cli-*-windows-x64.zip` |
 | Linux x64 | `alipan-webdav-fx-*-linux-x64.tar.gz` | `alipan-webdav-cli-*-linux-x64.tar.gz` |
-| macOS Apple Silicon | `alipan-webdav-fx-*-macos-aarch64.tar.gz` | `alipan-webdav-cli-*-macos-aarch64.tar.gz` |
+
+**跨平台 jar（需自行安装 JDK 25+）：**
+
+| 类型 | 文件 |
+|------|------|
+| GUI | `alipan-webdav-fx-*.jar` |
+| CLI | `alipan-webdav-cli-*.jar` |
+
+```bash
+# GUI
+java --add-opens=java.base/java.lang=ALL-UNNAMED -jar alipan-webdav-fx-0.1.0.jar
+
+# CLI
+java -jar alipan-webdav-cli-0.1.0.jar
+```
 
 ## 环境要求（从源码构建）
 
