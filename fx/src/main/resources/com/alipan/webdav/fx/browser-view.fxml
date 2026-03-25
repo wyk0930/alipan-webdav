@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.alipan.webdav.fx.controller.BrowserController"
+            styleClass="browser-root">
+
+    <!-- 顶部工具栏 -->
+    <top>
+        <HBox spacing="6" alignment="CENTER_LEFT" styleClass="toolbar">
+            <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+            <Button fx:id="backButton" text="← 返回" onAction="#onBack" disable="true"/>
+            <Button fx:id="refreshButton" text="刷新" onAction="#onRefresh"/>
+            <Separator orientation="VERTICAL" prefHeight="20"/>
+            <Label fx:id="pathLabel" text="/" styleClass="path-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        </HBox>
+    </top>
+
+    <!-- 文件列表 -->
+    <center>
+        <VBox>
+            <padding><Insets top="0" right="12" bottom="0" left="12"/></padding>
+            <TableView fx:id="fileTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="nameColumn" text="名称" prefWidth="360" minWidth="200"/>
+                    <TableColumn fx:id="sizeColumn" text="大小" prefWidth="100" minWidth="80"/>
+                    <TableColumn fx:id="typeColumn" text="类型" prefWidth="140" minWidth="80"/>
+                    <TableColumn fx:id="modifiedColumn" text="修改时间" prefWidth="160" minWidth="120"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </center>
+
+    <!-- 底部状态栏 -->
+    <bottom>
+        <HBox alignment="CENTER_LEFT" styleClass="status-bar">
+            <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+
+            <!-- 左侧：下载区域 -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button fx:id="downloadButton" text="下载" onAction="#onDownload"/>
+                <ProgressBar fx:id="progressBar" progress="0" prefWidth="180" prefHeight="16"/>
+                <Label fx:id="downloadLabel" text="" maxWidth="280"/>
+            </HBox>
+
+            <!-- 弹簧 -->
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- 右侧：目录统计 -->
+            <Label fx:id="countLabel" text="就绪" styleClass="count-label"/>
+        </HBox>
+    </bottom>
+</BorderPane>

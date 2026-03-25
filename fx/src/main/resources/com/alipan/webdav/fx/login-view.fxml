@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.alipan.webdav.fx.controller.LoginController"
+           styleClass="login-root">
+
+    <!-- 居中卡片 -->
+    <VBox alignment="CENTER" spacing="24" styleClass="login-card"
+          maxWidth="380" maxHeight="420">
+
+        <!-- 标题区 -->
+        <VBox alignment="CENTER" spacing="6">
+            <Label text="WebDAV" styleClass="title-label"/>
+            <Label text="浏览和下载远程文件" styleClass="subtitle-label"/>
+        </VBox>
+
+        <!-- 表单区 -->
+        <VBox spacing="14">
+            <VBox spacing="5">
+                <Label text="账号" styleClass="form-label"/>
+                <TextField fx:id="usernameField" promptText="请输入 WebDAV 账号"/>
+            </VBox>
+            <VBox spacing="5">
+                <Label text="密码" styleClass="form-label"/>
+                <PasswordField fx:id="passwordField" promptText="请输入 WebDAV 密码"/>
+            </VBox>
+            <VBox spacing="5">
+                <Label text="代理" styleClass="form-label"/>
+                <TextField fx:id="proxyField" promptText="如 127.0.0.1:7078，留空则直连"/>
+            </VBox>
+        </VBox>
+
+        <!-- 登录按钮 -->
+        <Button fx:id="loginButton" text="连  接" onAction="#onLogin"
+                maxWidth="Infinity" prefHeight="40" styleClass="login-button"/>
+
+        <!-- 状态 -->
+        <Label fx:id="statusLabel" text="" wrapText="true"
+               maxWidth="300" styleClass="status-text" alignment="CENTER"/>
+    </VBox>
+</StackPane>
