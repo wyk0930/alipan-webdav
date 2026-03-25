@@ -109,13 +109,13 @@ jobs:
           cd dist
           if [ "$RUNNER_OS" = "Windows" ]; then
             7z a -tzip "alipan-webdav-cli-${APP_VERSION}-${{ matrix.label }}.zip" alipan-webdav/
-            7z a -tzip "WebDAV-${APP_VERSION}-${{ matrix.label }}.zip" WebDAV/
+            7z a -tzip "alipan-webdav-fx-${APP_VERSION}-${{ matrix.label }}.zip" WebDAV/
           elif [ "$RUNNER_OS" = "macOS" ]; then
             tar -czf "alipan-webdav-cli-${APP_VERSION}-${{ matrix.label }}.tar.gz" alipan-webdav.app/
-            tar -czf "WebDAV-${APP_VERSION}-${{ matrix.label }}.tar.gz" WebDAV.app/
+            tar -czf "alipan-webdav-fx-${APP_VERSION}-${{ matrix.label }}.tar.gz" WebDAV.app/
           else
             tar -czf "alipan-webdav-cli-${APP_VERSION}-${{ matrix.label }}.tar.gz" alipan-webdav/
-            tar -czf "WebDAV-${APP_VERSION}-${{ matrix.label }}.tar.gz" WebDAV/
+            tar -czf "alipan-webdav-fx-${APP_VERSION}-${{ matrix.label }}.tar.gz" WebDAV/
           fi
 
       - name: Upload to Release
@@ -123,4 +123,4 @@ jobs:
         with:
           files: |
             dist/alipan-webdav-cli-*.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
-            dist/WebDAV-*.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
+            dist/alipan-webdav-fx-*.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}

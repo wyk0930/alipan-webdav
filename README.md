@@ -15,9 +15,9 @@
 
 | 平台 | GUI | CLI |
 |------|-----|-----|
-| Windows x64 | `WebDAV-*-windows-x64.zip` | `alipan-webdav-cli-*-windows-x64.zip` |
-| Linux x64 | `WebDAV-*-linux-x64.tar.gz` | `alipan-webdav-cli-*-linux-x64.tar.gz` |
-| macOS Apple Silicon | `WebDAV-*-macos-aarch64.tar.gz` | `alipan-webdav-cli-*-macos-aarch64.tar.gz` |
+| Windows x64 | `alipan-webdav-fx-*-windows-x64.zip` | `alipan-webdav-cli-*-windows-x64.zip` |
+| Linux x64 | `alipan-webdav-fx-*-linux-x64.tar.gz` | `alipan-webdav-cli-*-linux-x64.tar.gz` |
+| macOS Apple Silicon | `alipan-webdav-fx-*-macos-aarch64.tar.gz` | `alipan-webdav-cli-*-macos-aarch64.tar.gz` |
 
 ## 环境要求（从源码构建）
 
