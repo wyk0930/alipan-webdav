@@ -88,7 +88,6 @@ public class WebDavService {
             String result = results.get(path);
             if ("HTTP 207".equals(result) || "HTTP 200".equals(result)) {
                 baseUrl = encodeUrl(path);
-                System.out.println("[WebDAV] 使用路径: " + path + " -> " + baseUrl);
                 return;
             }
             if ("HTTP 401".equals(result)) {
@@ -114,14 +113,10 @@ public class WebDavService {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("[WebDAV] listDirectory: " + url + " -> HTTP " + response.statusCode());
         if (response.statusCode() != 207) {
-            System.out.println("[WebDAV] 响应内容: " + response.body());
             throw new IOException("列目录失败，HTTP状态码: " + response.statusCode());
         }
         String body = response.body();
-        System.out.println("[WebDAV] 响应长度: " + body.length());
-        System.out.println("[WebDAV] 响应内容:\n" + body);
 
         return parseMultiStatus(new java.io.ByteArrayInputStream(
                 body.getBytes(java.nio.charset.StandardCharsets.UTF_8)), url);
@@ -224,7 +219,6 @@ public class WebDavService {
                 // 构建完整 URL：直接用服务器返回的 href 拼接
                 String fullUrl = "https://" + HOST + ":" + PORT + href;
 
-                System.out.println("[WebDAV]   item: name=" + name + " isDir=" + isDir + " href=" + href + " fullUrl=" + fullUrl);
                 files.add(new RemoteFile(name, fullUrl, isDir, contentLength, contentType));
             }
         } catch (IOException e) {

@@ -9,7 +9,17 @@
 - 文件下载，实时进度显示
 - HTTP 代理支持（环境变量自动检测或手动配置）
 
-## 环境要求
+## 下载
+
+从 [Releases](https://github.com/wyk0930/alipan-webdav/releases) 页面下载对应平台的压缩包，解压后直接运行，内嵌 JRE 无需安装 Java。
+
+| 平台 | GUI | CLI |
+|------|-----|-----|
+| Windows x64 | `WebDAV-*-windows-x64.zip` | `alipan-webdav-cli-*-windows-x64.zip` |
+| Linux x64 | `WebDAV-*-linux-x64.tar.gz` | `alipan-webdav-cli-*-linux-x64.tar.gz` |
+| macOS Apple Silicon | `WebDAV-*-macos-aarch64.tar.gz` | `alipan-webdav-cli-*-macos-aarch64.tar.gz` |
+
+## 环境要求（从源码构建）
 
 - JDK 25+
 - Maven 3.6+
@@ -23,75 +33,81 @@ alipan-webdav/
 └── cli/     # 命令行客户端
 ```
 
-## 构建
+## 构建与打包
+
+### GUI 客户端
 
 ```bash
-# 编译全部模块
+# 1. 克隆项目
+git clone https://github.com/wyk0930/alipan-webdav.git
+cd alipan-webdav
+
+# 2. 编译
 mvn clean package -q
+
+# 3. 准备干净的输入目录（仅包含 shade 后的 fat jar）
+mkdir -p dist/jpackage-fx
+cp fx/target/alipan-webdav-fx-0.1.0.jar dist/jpackage-fx/
+
+# 4. 生成 app-image（内嵌 JRE，无需目标机器安装 Java）
+jpackage --name WebDAV \
+  --input dist/jpackage-fx \
+  --main-jar alipan-webdav-fx-0.1.0.jar \
+  --main-class com.alipan.webdav.fx.Launcher \
+  --type app-image \
+  --dest dist \
+  --java-options "--add-opens=java.base/java.lang=ALL-UNNAMED" \
+  --app-version 0.1.0
 ```
 
-产物：
-- `fx/target/alipan-webdav-fx-0.1.0.jar` — GUI 客户端
-- `cli/target/alipan-webdav-cli-0.1.0.jar` — CLI 客户端
+产物位于 `dist/WebDAV/`，双击 `WebDAV.exe` 即可运行。
+
+### CLI 客户端
+
+```bash
+# 1. 克隆项目
+git clone https://github.com/wyk0930/alipan-webdav.git
+cd alipan-webdav
+
+# 2. 编译
+mvn clean package -q
+
+# 3. 准备干净的输入目录（仅包含 shade 后的 fat jar）
+mkdir -p dist/jpackage-cli
+cp cli/target/alipan-webdav-cli-0.1.0.jar dist/jpackage-cli/
+
+# 4. 生成 app-image（内嵌 JRE，无需目标机器安装 Java）
+jpackage --name alipan-webdav \
+  --input dist/jpackage-cli \
+  --main-jar alipan-webdav-cli-0.1.0.jar \
+  --main-class com.alipan.webdav.cli.Main \
+  --type app-image \
+  --dest dist \
+  --win-console \
+  --app-version 0.1.0
+```
+
+产物位于 `dist/alipan-webdav/`，直接运行 `alipan-webdav.exe` 即可。
+
+> 两种打包产物均内嵌 JRE，目标机器无需安装 Java。
+
+### 开发运行
+
+```bash
+# GUI（需本机安装 JDK 25+）
+mvn -pl fx javafx:run
+
+# CLI（需本机安装 JDK 25+）
+java -jar cli/target/alipan-webdav-cli-0.1.0.jar
+```
 
 ## GUI 客户端 (fx)
 
 基于 JavaFX 的图形界面，提供登录、文件浏览、下载等功能。
 
-### 开发运行
-
-```bash
-mvn -pl fx javafx:run
-```
-
-### 直接运行 jar
-
-```bash
-java --add-opens=java.base/java.lang=ALL-UNNAMED -jar fx/target/alipan-webdav-fx-0.1.0.jar
-```
-
-### 打包为免安装版（app-image）
-
-打包后内嵌 JRE，无需目标机器安装 Java。
-
-```bash
-mvn clean package -q
-jpackage --name WebDAV \
-  --input fx/target \
-  --main-jar alipan-webdav-fx-0.1.0.jar \
-  --main-class com.alipan.webdav.fx.Launcher \
-  --type app-image \
-  --dest target/app \
-  --java-options "--add-opens=java.base/java.lang=ALL-UNNAMED" \
-  --app-version 0.1.0
-```
-
-产物位于 `target/app/WebDAV/`，双击 `WebDAV.exe` 即可运行。
-
 ## CLI 客户端 (cli)
 
 交互式命令行客户端，适合无图形界面的环境。
-
-### 运行
-
-```bash
-java -jar cli/target/alipan-webdav-cli-0.1.0.jar
-```
-
-### 打包为免安装版（app-image）
-
-```bash
-mvn clean package -q
-jpackage --name alipan-webdav \
-  --input cli/target \
-  --main-jar alipan-webdav-cli-0.1.0.jar \
-  --main-class com.alipan.webdav.cli.Main \
-  --type app-image \
-  --dest target/app \
-  --app-version 0.1.0
-```
-
-产物位于 `target/app/alipan-webdav/`，内嵌 JRE，目标机器无需安装 Java，直接运行即可。
 
 ### 使用方式
 

@@ -1,5 +1,6 @@
 # Build output
 target/
+dist/
 !.mvn/wrapper/maven-wrapper.jar
 
 # IDE - IntelliJ IDEA

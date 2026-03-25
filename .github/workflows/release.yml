@@ -1,0 +1,105 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            label: windows-x64
+          - os: ubuntu-latest
+            label: linux-x64
+          - os: macos-latest
+            label: macos-aarch64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: oracle
+          java-version: '25'
+
+      - name: Extract version from tag
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: mvn clean package -q
+
+      - name: Prepare jpackage input
+        shell: bash
+        run: |
+          mkdir -p dist/jpackage-cli dist/jpackage-fx
+          cp cli/target/alipan-webdav-cli-*.jar dist/jpackage-cli/
+          cp fx/target/alipan-webdav-fx-*.jar dist/jpackage-fx/
+          # 去掉 original- 开头的 jar
+          rm -f dist/jpackage-cli/original-* dist/jpackage-fx/original-*
+
+      - name: Find jar filenames
+        shell: bash
+        run: |
+          CLI_JAR=$(basename dist/jpackage-cli/*.jar)
+          FX_JAR=$(basename dist/jpackage-fx/*.jar)
+          echo "CLI_JAR=$CLI_JAR" >> "$GITHUB_ENV"
+          echo "FX_JAR=$FX_JAR" >> "$GITHUB_ENV"
+
+      - name: Package CLI (app-image)
+        shell: bash
+        run: |
+          ARGS=(
+            --name alipan-webdav
+            --input dist/jpackage-cli
+            --main-jar "$CLI_JAR"
+            --main-class com.alipan.webdav.cli.Main
+            --type app-image
+            --dest dist
+            --app-version "$APP_VERSION"
+          )
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ARGS+=(--win-console)
+          fi
+          jpackage "${ARGS[@]}"
+
+      - name: Package GUI (app-image)
+        shell: bash
+        run: |
+          jpackage \
+            --name WebDAV \
+            --input dist/jpackage-fx \
+            --main-jar "$FX_JAR" \
+            --main-class com.alipan.webdav.fx.Launcher \
+            --type app-image \
+            --dest dist \
+            --java-options "--add-opens=java.base/java.lang=ALL-UNNAMED" \
+            --app-version "$APP_VERSION"
+
+      - name: Compress artifacts
+        shell: bash
+        run: |
+          cd dist
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            7z a -tzip "alipan-webdav-cli-${APP_VERSION}-${{ matrix.label }}.zip" alipan-webdav/
+            7z a -tzip "WebDAV-${APP_VERSION}-${{ matrix.label }}.zip" WebDAV/
+          else
+            tar -czf "alipan-webdav-cli-${APP_VERSION}-${{ matrix.label }}.tar.gz" alipan-webdav/
+            tar -czf "WebDAV-${APP_VERSION}-${{ matrix.label }}.tar.gz" WebDAV/
+          fi
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/alipan-webdav-cli-*.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
+            dist/WebDAV-*.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
