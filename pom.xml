@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>阿里云盘 WebDAV 客户端</name>
+    <name>alipan-webdav</name>
 
     <modules>
         <module>core</module>

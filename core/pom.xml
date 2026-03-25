@@ -12,5 +12,5 @@
 
     <artifactId>alipan-webdav-core</artifactId>
     <packaging>jar</packaging>
-    <name>阿里云盘 WebDAV 核心</name>
+    <name>alipan-webdav-core</name>
 </project>
